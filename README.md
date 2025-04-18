@@ -49,8 +49,8 @@ $ source botenv/bin/activate
 
 # 4. Create .env
 (botenv)$ cat > .env <<EOF
-BOT_TOKEN=123456:ABCDEF...
-ALLOWED_GROUPS=-4757097599      # comma‑separated list of chat IDs
+BOT_TOKEN=<YOUR_BOT_ID>
+ALLOWED_GROUPS=<YOUR_GROUP_CHAT_ID>, <YOUR_GROUP_CHAT_ID>      # comma‑separated list of chat IDs
 EOF
 
 # 5. Run
