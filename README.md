@@ -17,20 +17,6 @@ A Python bot that **grabs a Threads™ post (media + caption) and reposts it to
 
 ---
 
-## 🏗️ Architecture
-
-```
-┌──────────────┐   Threads URL   ┌──────────┐
-│  Telegram    │───────────────▶│  Bot      │
-│  Chat / PM   │                │ (Python)  │
-└──────┬───────┘  media‑group    └────┬─────┘
-       │                             │
-       │  sendMediaGroup             │
-       │                             ▼
-   Telegram Bot API            Threads Post (HTML)
-```
-
----
 
 ## 🚀 Quick Start (local)
 
@@ -70,7 +56,7 @@ EOF
 | Name             | Description                                                                                     | Example                      |
 | ---------------- | ----------------------------------------------------------------------------------------------- | ---------------------------- |
 | `BOT_TOKEN`      | Your bot’s API token from @BotFather                                                            | `123456:ABC...`              |
-| `ALLOWED_GROUPS` | Comma‑separated list of *signed* chat IDs the bot may stay in. Use a negative value for groups. | `-4757097599,-1009876543210` |
+| `ALLOWED_GROUPS` | Comma‑separated list of *signed* chat IDs the bot may stay in. Use a negative value for groups. | `-47424329,-1009876543210` |
 
 ---
 
