@@ -20,14 +20,17 @@ from selenium.webdriver.chrome.options import Options
 
 from telegram import Update
 from telegram import InputMediaPhoto, InputMediaVideo
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes, ChatMemberHandler   
 
 from dotenv import load_dotenv
 
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
+# ① 讀取並轉成整數集合
+ALLOWED_IDS = {
+    int(x) for x in os.getenv("ALLOWED_GROUPS", "").split(",") if x
+}
 # Set web drive options
 options = Options()
 options.add_argument("--headless=new")
@@ -41,6 +44,17 @@ options.add_argument("--window-size=1920,1080")
 download_folder = "downloads"
 os.makedirs(download_folder, exist_ok=True)
 
+async def membership_control(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Bot 被加入群組或權限變化時觸發。"""
+    chat = update.effective_chat
+    new_status = update.my_chat_member.new_chat_member.status  # member / administrator / restricted
+    if new_status in ("member", "administrator", "restricted"):
+        if chat.id not in ALLOWED_IDS:
+            # 發一句話後離開（可省略訊息）
+            try:
+                await context.bot.send_message(chat.id, "❌ 未授權的群組，Bot 將離開")
+            finally:
+                await context.bot.leave_chat(chat.id)
 
 # download image/video with stream mode
 def download_file(url,extension):
@@ -111,6 +125,8 @@ def process_threads_link(url):
     return result_data
     
 async def handle_threads(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat.id not in ALLOWED_IDS:
+        return      # 直接丟掉訊息
     url = update.message.text.strip()
     if "threads.com" not in url and "threads.net" not in url:
         await update.message.reply_text("❗ 請提供有效的 Threads 的貼文連結。")
@@ -156,6 +172,17 @@ async def handle_threads(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     
 
 app = ApplicationBuilder().token(BOT_TOKEN).build()
-app.add_handler(MessageHandler(filters.TEXT & (filters.ChatType.GROUPS | filters.ChatType.PRIVATE), handle_threads))
+
+# ② 先監聽 Bot 自己的成員狀態
+app.add_handler(ChatMemberHandler(membership_control, ChatMemberHandler.MY_CHAT_MEMBER))
+
+# ③ 再放主要訊息處理
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & (filters.ChatType.GROUPS | filters.ChatType.PRIVATE),
+        handle_threads
+    )
+)
+
 print("✅ Bot 已啟動")
 app.run_polling()
